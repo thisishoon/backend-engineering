@@ -56,10 +56,12 @@ func dataDownloader() {
 
 func main() {
 	// dataDownloader()
-
-	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("hello world")
-		dataDownloader()
+	http.HandleFunc("/api1", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			fmt.Println("Hello World")
+		} else if r.Method == "POST" {
+			dataDownloader()
+		}
 	})
 
 	err := http.ListenAndServe(":8080", nil)
