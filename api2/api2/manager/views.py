@@ -6,13 +6,15 @@ import json
 from datetime import datetime, timedelta
 from dateutil.parser import parse, isoparse
 
-
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers
 
 
 # Create your views here.
 
 class ManagerView(APIView):
+    es = Elasticsearch('localhost:9200')
+    index = "earthquake"
+
     def get(self, request, *args, **kwargs):
         start = request.query_params.get('start')
         end = request.query_params.get('end')
@@ -33,7 +35,6 @@ class ManagerView(APIView):
             except Exception as e:
                 HttpResponse(e)
 
-        es = Elasticsearch('localhost:9200')
         query = {
             "query": {
                 "range": {
@@ -44,8 +45,7 @@ class ManagerView(APIView):
                 }
             }
         }
-
-        res = es.search(index='earthquake', body=query)
+        res = self.es.search(index='earthquake', body=query)
         result = []
         for i in res['hits']['hits']:
             result.append(i['_source'])
@@ -53,24 +53,51 @@ class ManagerView(APIView):
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')
 
-
     def post(self, request):
-        es = Elasticsearch('localhost:9200')
+
         data = json.loads(request.body)
         result = []
 
-        try:
-            if len(data) <= 1:
-                res = es.index(index='earthquake', body=data)
-                result.append(res['result'])
-            else:
-                res = helpers.bulk(es, data, index='earthquake')
-                result = result
+        if type(data) is not list:
+            try:
+                data = json.loads(data)
+            except:
+                pass
 
-        except ElasticsearchException:
-            print('ElasticSearch is not running')
+        try:
+            if type(data) is dict:
+                res = self.es.index(index='earthquake', body=data, id=data['id'])
+                # result.append(res['result'])
+            elif len(data) <= 1:
+                res = self.es.index(index='earthquake', body=data[0], id=data[0]['id'])
+                # result.append(res['result'])
+            else:
+                for doc in data:
+                    res = self.es.index(index='earthquake', body=doc, id=doc['id'])
+                    # result.append(res['result'])
+
+
+        except ElasticsearchException as e:
+            print(e)
             return HttpResponse(status=400)
 
         return HttpResponse("POST OK")
 
+    def put(self, request):
+        data = json.loads(request.body)
+        for doc in data:
+            updated_id = doc['id']
+            print(updated_id)
+            
+            self.es.update(index=self.index, id=updated_id,
+                           body={"doc": doc})
 
+        return HttpResponse("UPDATE OK")
+
+    def delete(self, pk):
+        deleted_id = pk.split('-')
+        print(deleted_id)
+        for id in deleted_id:
+            self.es.delete(index=self.index, id=id)
+
+        return HttpResponse("DELETE OK")
