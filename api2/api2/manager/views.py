@@ -1,11 +1,11 @@
+import json
+import asyncio
+from datetime import datetime, timedelta
+from dateutil.parser import parse, isoparse
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse
-import json
-from datetime import datetime, timedelta
-from dateutil.parser import parse, isoparse
-
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError
 
 
@@ -99,11 +99,9 @@ class ManagerView(APIView):
             self.es.delete(index=self.index, id=pk)
             return HttpResponse("DELETE OK")
 
-        data = json.loads(request.body)
-        print(data)
+        data = json.loads(request.body)["id"]
         try:
-            for doc in data:
-                deleted_id = doc['id']
+            for deleted_id in data:
                 self.es.delete(index=self.index, id=deleted_id)
         except NotFoundError:
             pass
