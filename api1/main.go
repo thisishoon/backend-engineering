@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func readCSVFromUrl(url string) ([][]string, error) {
@@ -50,17 +51,47 @@ func dataDownloader() {
 	data, _ := readCSVFromUrl(url)
 	fmt.Println(len(data))
 
-	JSON, _ := convertJSON(data)
-	fmt.Println((JSON))
+	//POST API2 SERVER...
+	// beforeJSON, _ := convertJSON(data)
+	// JSON, _ := json.Marshal(beforeJSON)
+	// buff := bytes.NewBuffer(JSON)
+	// fmt.Println(string(JSON))
+
+	// resp, err := http.Post("0.0.0.0:8002/api2", "application/json", buff)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// defer resp.Body.Close()
+
+	// //check response
+	// respBody, err := ioutil.ReadAll(resp.Body)
+	// if err == nil {
+	// 	str := string(respBody)
+	// 	println(str)
+	// }
+}
+
+func doPeriodically() {
+	fmt.Println("주기적 다운로드")
+	// dataDownloader()
+}
+
+func runPeriodically() {
+	for {
+		doPeriodically()
+		time.Sleep(time.Second * 10)
+	}
 }
 
 func main() {
-	// dataDownloader()
+	go runPeriodically()
 	http.HandleFunc("/api1", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			fmt.Println("Hello World")
 		} else if r.Method == "POST" {
-			dataDownloader()
+			fmt.Println("선택적 다운로드")
+			//ataDownloader()
 		}
 	})
 
