@@ -1,0 +1,14 @@
+api1/.idea
+api1/.idea/
+api1/.idea/*
+
+api2/.idea
+api2/.idea2/
+api2/.idea2/*
+
+*/__pycache__/
+*/__pycache__/*
+
+*/sqlite3
+
+
