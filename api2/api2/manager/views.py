@@ -8,14 +8,12 @@ from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError
 
-
-# Create your views here.
-
 class ManagerView(APIView):
     es = Elasticsearch('localhost:9200')
     index = "earthquake"
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk=None):
+
         start = request.query_params.get('start')
         end = request.query_params.get('end')
 
@@ -35,20 +33,31 @@ class ManagerView(APIView):
             except Exception as e:
                 HttpResponse(e)
 
-        query = {
+        rangeTimeQuery = {
             "query": {
-                "range": {
-                    "time": {
-                        "gte": start,
-                        "lte": end
-                    }
+                "bool": {
+                    "must": [
+                        {
+                            "range": {
+                                "time": {
+                                    "gte": start,
+                                    "lte": end
+                                }
+                            }
+                        }
+                    ]
                 }
             }
         }
-        res = self.es.search(index='earthquake', body=query)
-        result = []
-        for i in res['hits']['hits']:
-            result.append(i['_source'])
+        data = []
+        if pk is not None:
+            data.append(pk)
+        elif request.body != b'':
+            data += (json.loads(request.body))
+
+        res = self.es.search(index='earthquake', body=rangeTimeQuery)
+        print(res)
+        result = [value['_source'] for value in res['hits']['hits']]
 
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')

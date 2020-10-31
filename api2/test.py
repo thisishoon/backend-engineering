@@ -1,7 +1,12 @@
-str = "htllo \" \" "
+test = []
 
-print(str)
+test.append(2);
 
-output = str.replace('"', "'")
+test2 = [1, 2, 3]
 
-print(output)
+test += test2
+
+test3 = 2
+test += test3
+
+print(test)
