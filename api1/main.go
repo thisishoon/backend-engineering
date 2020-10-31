@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-	"reflect"
 )
 
 func readCSVFromUrl(url string) ([][]string, error) {
@@ -17,8 +18,9 @@ func readCSVFromUrl(url string) ([][]string, error) {
 
 	reader := csv.NewReader(resp.Body)
 	reader.Comma = ','
-	fmt.Println(reader.ReadAll()[0][0][0])
+
 	data, err := reader.ReadAll()
+
 	if err != nil {
 		return nil, err
 	}
@@ -26,16 +28,43 @@ func readCSVFromUrl(url string) ([][]string, error) {
 	return data, nil
 }
 
-func main() {
-	fmt.Println("hello")
-	url := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
-	data, _ := readCSVFromUrl(url)
-	fmt.Println(data[1][10])
-	fmt.Println(reflect.TypeOf(data[1][2]))
+func convertJSON(data [][]string) (interface{}, error) {
+	parseData := make([]map[string]interface{}, 0, 0)
+
+	for i := 0; i < len(data); i++ {
+		m := make(map[string]interface{})
+		for j := 0; j < len(data[i]); j++ {
+			key := data[0][j]
+			value := data[i][j]
+			m[key] = value
+		}
+		parseData = append(parseData, m)
+	}
+	result, _ := json.Marshal(parseData)
+	return string(result), nil
 }
 
-// func main() {
-// 	fmt.Println("Hello word")
-// 	fileURL := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
-// 	readCSVFromUrl(fileURL)
-// }
+func dataDownloader() {
+	url := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
+	// url := "https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime=2014-01-01&endtime=2014-01-02"
+	data, _ := readCSVFromUrl(url)
+	fmt.Println(len(data))
+
+	JSON, _ := convertJSON(data)
+	fmt.Println((JSON))
+}
+
+func main() {
+	// dataDownloader()
+
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("hello world")
+		dataDownloader()
+	})
+
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+}
