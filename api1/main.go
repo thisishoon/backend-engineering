@@ -47,18 +47,14 @@ func convertJSON(data [][]string) (interface{}, error) {
 	return string(result), nil
 }
 
-func dataDownloader() {
+func dataDownloader() (result string) {
 	url := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
 	data, _ := readCSVFromUrl(url)
-	fmt.Println(len(data))
-
 	beforeJSON, _ := convertJSON(data)
 	JSON, _ := json.Marshal(beforeJSON)
 	buff := bytes.NewBuffer(JSON)
 
-	resp, err := http.Post("http://api2:8000", "application/json", buff)
-	// resp, err := http.Post("http://host.docker.internal:8000/", "application/json", buff)
-	// req, err := http.NewRequest("POST", "http://host.docker.internal:8000", buff)
+	resp, err := http.Post("http://api2:8002/", "application/json", buff)
 	if err != nil {
 		panic(err)
 	}
@@ -67,34 +63,51 @@ func dataDownloader() {
 
 	//check response
 	respBody, err := ioutil.ReadAll(resp.Body)
-	if err == nil {
-		str := string(respBody)
-		println(str)
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println("새 기록 저장 (POST to API2)")
+	return string(respBody)
 }
 
 func doPeriodically() {
-	fmt.Println("주기적 다운로드")
+	fmt.Println("주기적 다운로드 시작(1시간 간격)")
 	dataDownloader()
 }
 
 func runPeriodically() {
 	for {
 		doPeriodically()
-		time.Sleep(time.Second * 60)
+		time.Sleep(time.Minute * 60)
+	}
+}
+
+func waitAPI2() {
+	time.Sleep(time.Second * 15)
+	for {
+		_, err := http.Get("http://api2:8002/")
+		if err != nil {
+			time.Sleep(time.Second * 5)
+			fmt.Println("api1 is waiting for api2")
+		} else {
+			fmt.Println("api1 start")
+			break
+		}
 	}
 }
 
 func main() {
-	time.Sleep(time.Second * 2)
-	fmt.Println("API1 created")
-	// go runPeriodically()
-	http.HandleFunc("/api1", func(w http.ResponseWriter, r *http.Request) {
+	waitAPI2()
+	go runPeriodically()
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			fmt.Println("Hello World")
 		} else if r.Method == "POST" {
-			fmt.Println("선택적 다운로드")
-			dataDownloader()
+			fmt.Println("수동 다운로드 요청")
+			res := dataDownloader()
+			w.WriteHeader(200)
+			w.Write([]byte(res))
 		}
 	})
 

@@ -10,7 +10,6 @@ services:
       - 9200:9200
       - 9300:9300
 
-
   api2:
     build:
       context: api2/  #Dockerfile path
@@ -18,11 +17,11 @@ services:
     container_name: api2
     depends_on:
       - elasticsearch
-    command: python api2/api2/manage.py runserver 0.0.0.0:8000
+    command: python api2/api2/manage.py runserver 0.0.0.0:8002
     volumes:
       - .:/django
     ports:
-      - 8000:8000
+      - 8002:8002
     restart: always
     tty: true
     links:

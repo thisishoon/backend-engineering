@@ -10,8 +10,6 @@ from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFou
 from .corruncy import post_concurrency, put_concurrency, delete_concurrency
 
 class ManagerView(APIView):
-    # es = Elasticsearch('0.0.0.0:9200')
-    # es = Elasticsearch(host="host.docker.internal")
     es = Elasticsearch("elasticsearch:9200")
     index = "earthquake"
 
@@ -71,7 +69,6 @@ class ManagerView(APIView):
         except ElasticsearchException as e:
             print(e)
             return HttpResponse(status=400)
-
 
         return HttpResponse("POST OK")
 

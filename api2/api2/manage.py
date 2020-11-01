@@ -5,22 +5,26 @@ import sys
 from elasticsearch import Elasticsearch, ElasticsearchException
 import time
 
+
 def make_index():
-    # es = Elasticsearch(host="host.docker.internal")
     es = Elasticsearch("elasticsearch:9200")
     index = "earthquake"
+    time.sleep(15)
     while True:
         flag = es.ping()
         if flag:
             print(flag)
             break
         else:
-            time.sleep(1)
+            print("API2 is wating for DB...")
+            time.sleep(5)
 
     time.sleep(5)
     exist = es.indices.exists("earthquake")
     if not exist:
-        es.create(index="earthquake")
+        es.index(index="earthquake", body={"id": "dummy"})
+        # es.create(index="earthquake")
+        # es.indices()
 
 
 def main():
