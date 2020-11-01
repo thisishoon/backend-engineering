@@ -5,10 +5,12 @@ COPY . .
 
 # RUN go run main.go
 
-RUN go build -o main .
+# RUN go build -o main .
 
-CMD ["/golang/main"]
+# CMD ["/golang/main"]
 
+
+# CMD ["go run main.go"]
 
 
 

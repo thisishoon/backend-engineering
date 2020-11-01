@@ -1,13 +1,12 @@
 version: "3.2"
 
 services: 
-    app:
-        image: amd64/golang:1.14
-        build: 
+    api1:
+        build:
             context: .
             dockerfile: Dockerfile
-        command: ls
-        ports:
-            - 8080:8080
-        volumes:
-            - .:/app
+        ports: 
+            - 8001:8001
+        command: go run main.go
+        
+        
