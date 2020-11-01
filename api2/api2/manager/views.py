@@ -46,6 +46,7 @@ class ManagerView(APIView):
             rangeTimeQuery['query']['bool']['filter'].append(
                 {"terms": {"id": ids}})
 
+        self.es.indices.refresh(index=self.index)
         res = self.es.search(index='earthquake', body=rangeTimeQuery)
         result = [r['_source'] for r in res['hits']['hits']]
 
