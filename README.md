@@ -158,7 +158,7 @@ Success Response Code : `200 OK`
 ### Update
 
 - URL : `localhost:8002/{id}`
-- Method : `PUT`
+- Method : `PATCH`
 - URL Path Params (Required) : `id`
 - Request Body : (required): `All filed`
 - Success Response Code : `200 OK`
@@ -180,7 +180,7 @@ Success Response Code : `200 OK`
 
 URL : `localhost:8002/{id}`
 
-Method : `POST`
+Method : `DELETE`
 
 Success Response Code : `200 O`
 
@@ -262,7 +262,8 @@ Method : `POST`
 
 Request Body : JSON Array of data
 
-1. required: `id` 2. optional: All except id
+1. required: `id` `time` 
+2. optional: All except id, time
 - Example
 
 ```
@@ -330,11 +331,12 @@ Success Response Code : `200 OK`
 
 URL : `localhost:8002/`
 
-Method : `PUT`
+Method : `PATCH`
 
 Request Body : JSON Array of data, required: all fied
 
-1. required: `All filed` 
+1. required: `id`
+2. optional: All except id
 
 Success Response Code : `200 OK`
 
