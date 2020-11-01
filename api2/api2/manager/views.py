@@ -27,7 +27,7 @@ class ManagerView(APIView):
                 HttpResponse(e)
 
         if start is None:
-            start = (datetime.utcnow() - timedelta(hours=1)).isoformat()
+            start = (datetime.utcnow() - timedelta(days=30)).isoformat()
         else:
             try:
                 end = isoparse(end)
@@ -72,7 +72,7 @@ class ManagerView(APIView):
 
         return HttpResponse("POST OK")
 
-    def put(self, request, pk=None):
+    def patch(self, request, pk=None):
 
         data = json.loads(request.body)
         if type(data) is dict:

@@ -48,6 +48,8 @@ func convertJSON(data [][]string) (interface{}, error) {
 }
 
 func dataDownloader() (result string) {
+	fmt.Println("새 기록 저장 (POST to API2)")
+
 	url := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
 	data, _ := readCSVFromUrl(url)
 	beforeJSON, _ := convertJSON(data)
@@ -66,7 +68,6 @@ func dataDownloader() (result string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("새 기록 저장 (POST to API2)")
 	return string(respBody)
 }
 
