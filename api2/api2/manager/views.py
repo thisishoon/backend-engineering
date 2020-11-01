@@ -17,6 +17,7 @@ class ManagerView(APIView):
     def get(self, request, pk=None):
         start = request.query_params.get('start')
         end = request.query_params.get('end')
+        print(self.es.info())
 
         if end is None:
             end = datetime.utcnow().isoformat()

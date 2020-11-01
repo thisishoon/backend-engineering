@@ -27,7 +27,8 @@ SECRET_KEY = 'ziek!fm4pg!v$rhkvz4-!5-9&a9(g2%kev)65#lfn#gl)2^77%'
 DEBUG = True
 
 ALLOWED_HOSTS = ['0.0.0.0', 'localhost', '127.0.0.1',
-                 os.environ.get('host', '*')]
+                 os.environ.get('host', '*'),
+                 '172.17.0.1']
 
 
 # Application definition

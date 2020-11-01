@@ -56,7 +56,15 @@ func dataDownloader() {
 	JSON, _ := json.Marshal(beforeJSON)
 	buff := bytes.NewBuffer(JSON)
 
-	resp, err := http.Post("http://0.0.0.0:8000", "application/json", buff)
+	// resp, err := http.Post("http://0.0.0.0:8000", "application/json", buff)
+	// resp, err := http.Post("http://localhost:8000/", "application/json", buff)
+	req, err := http.NewRequest("POST", "http://172.19.0.3:8000", buff)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +93,8 @@ func runPeriodically() {
 
 func main() {
 	// dataDownloader()
-	go runPeriodically()
+	time.Sleep(time.Second * 2)
+	// go runPeriodically()
 	http.HandleFunc("/api1", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			fmt.Println("Hello World")
@@ -95,7 +104,7 @@ func main() {
 		}
 	})
 
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8002", nil)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -1,8 +1,9 @@
 FROM amd64/golang:1.14
 
-RUN mkdir /golang
-ADD . /golang/
 WORKDIR /golang
+COPY . .
+
+# RUN go run main.go
 
 RUN go build -o main .
 

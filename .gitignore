@@ -6,6 +6,8 @@ api1/tempCodeRunnerFile.go
 api2/.idea
 api2/.idea2/
 api2/.idea2/*
+.idea/
+.idea*
 
 */__pycache__/
 */__pycache__/*

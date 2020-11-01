@@ -2,6 +2,22 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from elasticsearch import Elasticsearch, ElasticsearchException
+
+
+def make_index():
+    es = Elasticsearch(host="host.docker.internal")
+    index = "earthquake"
+    while True:
+        flag = es.ping()
+        if flag:
+            print(flag)
+            break
+    if es.indices.exists(index=index):
+        print('existing earthquake index in use')
+    else:
+        es.indices.create(index=index)
+        print("earthquake index is created")
 
 
 def main():
@@ -19,4 +35,5 @@ def main():
 
 
 if __name__ == '__main__':
+    make_index()
     main()
