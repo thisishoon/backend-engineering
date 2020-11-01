@@ -11,6 +11,7 @@
 **API 1: Data Downloader - Golang**
 
 - 지난 1시간 동안의 지진 기록 (M1.0+ Earthquakes) CSV 파일을 1시간 간격의 주기적으로 다운로드 (Sleep과 고루틴 이용)
+- 지진 기록 데이터에 맞춰 타입 및 JSON 변환
 - net/http 모듈을 사용하여 유저의 post 요청받아 수동으로 다운로드 후 API2의 POST를 통해 새로운 기록 저장
 
 **API 2: Data Manager - Python, Django**
@@ -30,15 +31,14 @@
 - docker-compose의 links를 통해 컨테이너간 통신
 - 명령어 실행 시 설치가 완료되는 시간을 제어하기 위해 API 1은 API 2를, API 2는 DB를 바라보아 완전히 실행되었는지 확인하고 정상적으로 모두 올라왔을 시 API 1의 주기적 다운로드 실행
 
----
-
 ## Getting Started
 
 - Clone Repository
 
-```bash
-$ git clone https://github.com/thisishoon/backend-engineering.git
+```
+$ git clone <https://github.com/thisishoon/backend-engineering.git>
 $ cd backend-engineenring
+
 ```
 
 - build docker image & run container using docker, docker-compose
@@ -46,9 +46,8 @@ $ cd backend-engineenring
 
 ```
 $ docker-compose up --remove-orphans --build
-```
 
----
+```
 
 # API 1 Document
 
@@ -64,25 +63,18 @@ Code : `200 OK`
 
 Content : `"POST OK"`
 
----
-
 # API 2 Document
 
 ### 0. Parameter Explain
 
- 1. id=[string] (path parameter)
-
+1. id=[string] (path parameter)
 - (generally) [two-character network identifier](https://earthquake.usgs.gov/data/comcat/data-eventterms.php#net) with a (generally) [eight-character network-assigned code](https://earthquake.usgs.gov/data/comcat/data-eventterms.php#code).
 - A unique identifier for the event. This is the current preferred id for the event, and may change over time.
-
-2. time=[string] (query string parameter)
-
+1. time=[string] (query string parameter)
 - All times use ISO8601 Date/Time format. Unless a timezone is specified, UTC is assumed. Examples:
 - *2020-11-01*, Implicit UTC timezone, and time at start of the day (00:00:00)
 - *2020-11-01T16:50:05*, Implicit UTC timezone.
 - *2020-11-01T16:50:05+00:00*, Explicit timezone.
-
----
 
 ## 1. CRUD API for single row
 
@@ -100,13 +92,14 @@ Code : `200 OK`
 
 - Example
 
-```bash
-GET/ https://localhost:8002/ak020e2c6p8f
+```
+GET/ <https://localhost:8002/ak020e2c6p8f>
+
 ```
 
-Content : 
+Content :
 
-```bash
+```
     {
         "depth": "12.5",
         "depthError": "0.4",
@@ -117,6 +110,7 @@ Content : 
         "time": "2020-11-01T16:35:30.873Z",
         ...
     }
+
 ```
 
 ### Create
@@ -127,13 +121,13 @@ Method : `POST`
 
 URL Path Params (Required) : `id`
 
-Request Body :  1. required:  `id`  2. optional: All except id 
+Request Body : 1. required: `id` 2. optional: All except id
 
 Success Response Code : `200 OK`
 
 - Request Example
 
-```bash
+```
 {
         "depth": "17.55",
         "depthError": "0.88",
@@ -158,18 +152,19 @@ Success Response Code : `200 OK`
         "type": "earthquake",
         "updated": "2020-11-01T18:29:40.576Z"
     }
+
 ```
 
 ### Update
 
 - URL : `localhost:8002/{id}`
-- Method : `PATCH`
+- Method : `PUT`
 - URL Path Params (Required) : `id`
-- Request Body : (required):  `id`  (optional): All except id
+- Request Body : (required): `All filed`
 - Success Response Code : `200 OK`
 - Request Example
 
-```bash
+```
 {
         "depth": "20.55",
         "depthError": "3.88",
@@ -178,6 +173,7 @@ Success Response Code : `200 OK`
         "horizontalError": "0.8",
         "id": "ci39453463"
     }
+
 ```
 
 ### Delete
@@ -190,8 +186,6 @@ Success Response Code : `200 O`
 
 URL Path Params (Required) : `id`
 
----
-
 ## 2. CRUD Bulk API for multiple row
 
 ### Read
@@ -199,7 +193,7 @@ URL Path Params (Required) : `id`
 > 시간(time)범위 쿼리 지원
 
 - ISO8601 Date/Time format [string]
-- default start value = NOW - 30days
+- default end value = NOW, start value = NOW - 30days
 
 > key가 id, value가 id의 배열인 JSON을 요청받아 id를 기반으로 데이터 삭제
 
@@ -217,20 +211,21 @@ Request Body (Optional) : key:`id`[string], value: [`id`, `id`, ...] [list]
 
 - Example
 
-```bash
-GET/ https://localhost:8002/?start=2020-11-01T16:10:32.530Z&end=2020-11-01T16:32:05.771Z
+```
+GET/ <https://localhost:8002/?start=2020-11-01T16:10:32.530Z&end=2020-11-01T16:32:05.771Z>
 
 Body
 {
     "id" = ["ak020e2c6p8f", "nc73477021", ...]
 }
+
 ```
 
 - Success Response
 
-Content : 
+Content :
 
-```bash
+```
 [
     {
         "depth": "12.5",
@@ -254,6 +249,7 @@ Content : 
     }
 		...
 ]
+
 ```
 
 ### Create
@@ -266,96 +262,100 @@ Method : `POST`
 
 Request Body : JSON Array of data
 
-1. required:  `id`     2. optional: All except id
+1. required: `id` 2. optional: All except id
 - Example
 
-```bash
-DELETE/ https://localhost:8002/
+```
+POST/ <https://localhost:8002/>
 
 Body
 [
     {
-        "depth": "12.5",
-        "depthError": "0.4",
-        "dmin": "",
-        "gap": "",
-        "horizontalError": "",
+        "depth": 12.5,
+        "depthError": 0.4,
+        "dmin": 0,
+        "gap": 0,
+        "horizontalError": ,
         "id": "ak020e2c6p8f",
-        "latitude": "64.3745",
+        "latitude": 64.3745,
         "locationSource": "ak",
-        "longitude": "-149.709",
-        "mag": "1.3",
-        "magError": "",
-        "magNst": "",
+        "longitude": -149.709,
+        "mag": 1.3,
+        "magError": 0,
+        "magNst": 0,
         "magSource": "ak",
         "magType": "ml",
         "net": "ak",
-        "nst": "",
+        "nst": 0,
         "place": "25 km W of Anderson, Alaska",
-        "rms": "0.48",
+        "rms": 0.48,
         "status": "automatic",
         "time": "2020-11-01T16:35:30.873Z",
         "type": "earthquake",
         "updated": "2020-11-01T16:42:44.137Z"
     },
     {
-        "depth": "0.26",
-        "depthError": "0.48",
-        "dmin": "0.0109",
-        "gap": "62",
-        "horizontalError": "0.28",
+        "depth": 0.26,
+        "depthError": 0.48,
+        "dmin": 0.0109,
+        "gap": 62,
+        "horizontalError": 0.28,
         "id": "nc73477021",
-        "latitude": "38.7971649",
+        "latitude": 38.7971649,
         "locationSource": "nc",
-        "longitude": "-122.793335",
-        "mag": "2.14",
-        "magError": "0.26",
-        "magNst": "16",
+        "longitude": -122.793335,
+        "mag": 2.14,
+        "magError": 0.26,
+        "magNst": 16,
         "magSource": "nc",
         "magType": "md",
         "net": "nc",
-        "nst": "21",
+        "nst": 21,
         "place": "4km NW of The Geysers, CA",
-        "rms": "0.14",
+        "rms": 0.14,
         "status": "automatic",
         "time": "2020-11-01T16:15:42.050Z",
         "type": "earthquake",
         "updated": "2020-11-01T16:35:04.642Z"
     }
 ]
+
 ```
 
 Success Response Code : `200 OK`
 
 ### Update
 
-> JSON 배열을 요청받아 필수 id를 기반으로 데이터를 수정
+> JSON 배열을 요청받아 필수 id를 기반으로 데이터를 전체 수정
 
 URL : `localhost:8002/`
 
-Method : `PATCH`
+Method : `PUT`
 
 Request Body : JSON Array of data, required: all fied
 
-1. required:  `id`     2. optional: All except id
+1. required: `All filed` 
 
 Success Response Code : `200 OK`
 
-```bash
-PATCH/ https://localhost:8002/
+```
+PATCH/ <https://localhost:8002/>
 
 Body
 [
     {
         "id": "ak020e2c6p8f",
         "latitude": "210000",
+					...
     },
     {
         "id": "nc73477021",
         "latitude": "90.7971649",
         "locationSource": "nc",
+					...
     }
 ]
+
 ```
 
 ### Delete
@@ -366,17 +366,18 @@ URL : `localhost:8002/`
 
 Method : `DELETE`
 
-Request Body (Optional) : {  key: `id`[string],    value: [`id`, `id`, ...] [list]  }
+Request Body (Optional) : { key: `id`[string], value: [`id`, `id`, ...] [list] }
 
 Success Response Code : `200 OK`
 
 - Example
 
-```bash
-DELETE/ https://localhost:8002/
+```
+DELETE/ <https://localhost:8002/>
 
 Body
 {
     "id" = ["ak020e2c6p8f", "nc73477021", ...]
 }
+
 ```

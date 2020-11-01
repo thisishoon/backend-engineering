@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -31,20 +32,42 @@ func readCSVFromUrl(url string) ([][]string, error) {
 	return data, nil
 }
 
-func convertJSON(data [][]string) (interface{}, error) {
+// func convertJSON(data [][]string) (interface{}, error) {
+// 	parseData := make([]map[string]interface{}, 0, 0)
+
+// 	for i := 1; i < len(data); i++ {
+// 		m := make(map[string]interface{})
+// 		for j := 0; j < len(data[i]); j++ {
+// 			key := data[0][j]
+// 			value := data[i][j]
+// 			m[key] = value
+
+// 		}
+// 		parseData = append(parseData, m)
+// 	}
+// 	result, _ := json.Marshal(parseData)
+// 	return string(result), nil
+// }
+
+func convertJSON(data [][]string) ([]map[string]interface{}, error) {
+
 	parseData := make([]map[string]interface{}, 0, 0)
 
 	for i := 1; i < len(data); i++ {
 		m := make(map[string]interface{})
-		for j := 0; j < len(data[i]); j++ {
-			key := data[0][j]
-			value := data[i][j]
-			m[key] = value
+		for j := 0; j < len(data[0]); j++ {
+			if j == 6 || j == 7 || j == 18 {
+				m[data[0][j]], _ = strconv.ParseInt(data[i][j], 10, 64)
+			} else if j == 1 || j == 2 || j == 3 || j == 4 || j == 8 || j == 9 ||
+				j == 15 || j == 16 || j == 17 {
+				m[data[0][j]], _ = strconv.ParseFloat(data[i][j], 64)
+			} else {
+				m[data[0][j]] = data[i][j]
+			}
 		}
 		parseData = append(parseData, m)
 	}
-	result, _ := json.Marshal(parseData)
-	return string(result), nil
+	return parseData, nil
 }
 
 func dataDownloader() (result string) {
@@ -54,6 +77,7 @@ func dataDownloader() (result string) {
 	data, _ := readCSVFromUrl(url)
 	beforeJSON, _ := convertJSON(data)
 	JSON, _ := json.Marshal(beforeJSON)
+	fmt.Println(string(JSON))
 	buff := bytes.NewBuffer(JSON)
 
 	resp, err := http.Post("http://api2:8002/", "application/json", buff)

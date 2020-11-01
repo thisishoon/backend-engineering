@@ -7,7 +7,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError
-from .corruncy import post_concurrency, put_concurrency, delete_concurrency
+from .corruncy import post_concurrency, patch_concurrency, delete_concurrency
+
 
 class ManagerView(APIView):
     es = Elasticsearch("elasticsearch:9200")
@@ -16,7 +17,6 @@ class ManagerView(APIView):
     def get(self, request, pk=None):
         start = request.query_params.get('start')
         end = request.query_params.get('end')
-        print(self.es.info())
 
         if end is None:
             end = datetime.utcnow().isoformat()
@@ -36,6 +36,7 @@ class ManagerView(APIView):
 
         rangeTimeQuery = {"query": {"bool": {"filter": [
             {"range": {"time": {"gte": start, "lte": end}}}]}}}
+        self.es.indices.refresh(index=self.index)
 
         if pk is not None:  # singloe row
             rangeTimeQuery['query']['bool']['filter'].append(
@@ -46,17 +47,17 @@ class ManagerView(APIView):
             rangeTimeQuery['query']['bool']['filter'].append(
                 {"terms": {"id": ids}})
 
-        self.es.indices.refresh(index=self.index)
         res = self.es.search(index='earthquake', body=rangeTimeQuery)
         result = [r['_source'] for r in res['hits']['hits']]
+        if pk is not None:
+            result = result[0]
 
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')
 
-        # return HttpResponse(status=200)
-
     def post(self, request):
         data = json.loads(request.body)
+
         if type(data) is not list:
             try:
                 data = json.loads(data)
@@ -64,8 +65,9 @@ class ManagerView(APIView):
                 pass
         if type(data) is dict:
             data = [data]
+
         try:
-            asyncio.run(put_concurrency(self.es, data))
+            asyncio.run(post_concurrency(self.es, data))
         except ElasticsearchException as e:
             print(e)
             return HttpResponse(status=400)
@@ -78,12 +80,13 @@ class ManagerView(APIView):
         if type(data) is dict:
             data = [data]
 
+        self.es.indices.refresh(index=self.index)
         for doc in data:
             if pk is not None:
                 self.es.update(index=self.index, id=pk,
                                body={"doc": doc})
             else:
-                asyncio.run(put_concurrency(self.es, data))
+                asyncio.run(patch_concurrency(self.es, data))
 
         return HttpResponse("UPDATE OK")
 
@@ -100,5 +103,3 @@ class ManagerView(APIView):
             pass
 
         return HttpResponse("DELETE OK")
-
-
