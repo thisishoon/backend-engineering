@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError
 
+
 class ManagerView(APIView):
     es = Elasticsearch('localhost:9200')
     index = "earthquake"
@@ -33,31 +34,20 @@ class ManagerView(APIView):
             except Exception as e:
                 HttpResponse(e)
 
-        rangeTimeQuery = {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "range": {
-                                "time": {
-                                    "gte": start,
-                                    "lte": end
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        data = []
-        if pk is not None:
-            data.append(pk)
-        elif request.body != b'':
-            data += (json.loads(request.body))
+        rangeTimeQuery = {"query": {"bool": {"filter": [
+            {"range": {"time": {"gte": start, "lte": end}}}]}}}
+
+        if pk is not None:  # singloe row
+            rangeTimeQuery['query']['bool']['filter'].append(
+                {"terms": {"id": [pk]}})
+
+        elif request.body != b'':  # multiple row
+            ids = (json.loads(request.body)['id'])
+            rangeTimeQuery['query']['bool']['filter'].append(
+                {"terms": {"id": ids}})
 
         res = self.es.search(index='earthquake', body=rangeTimeQuery)
-        print(res)
-        result = [value['_source'] for value in res['hits']['hits']]
+        result = [r['_source'] for r in res['hits']['hits']]
 
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')
@@ -116,3 +106,5 @@ class ManagerView(APIView):
             pass
 
         return HttpResponse("DELETE OK")
+
+
