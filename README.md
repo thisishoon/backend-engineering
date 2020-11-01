@@ -327,13 +327,13 @@ Success Response Code : `200 OK`
 
 ### Update
 
-> JSON 배열을 요청받아 필수 id를 기반으로 데이터를 전체 수정
+> JSON 배열을 요청받아 필수 id를 기반으로 데이터를 일부 수정
 
 URL : `localhost:8002/`
 
 Method : `PATCH`
 
-Request Body : JSON Array of data, required: all fied
+Request Body : JSON Array of data, required: all field
 
 1. required: `id`
 2. optional: All except id

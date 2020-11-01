@@ -34,7 +34,7 @@ class ManagerView(APIView):
             except Exception as e:
                 HttpResponse(e)
 
-        rangeTimeQuery = {"query": {"bool": {"filter": [
+        rangeTimeQuery = {"size": 10000, "query": {"bool": {"filter": [
             {"range": {"time": {"gte": start, "lte": end}}}]}}}
         self.es.indices.refresh(index=self.index)
 
@@ -50,7 +50,10 @@ class ManagerView(APIView):
         res = self.es.search(index='earthquake', body=rangeTimeQuery)
         result = [r['_source'] for r in res['hits']['hits']]
         if pk is not None:
-            result = result[0]
+            if not result:
+                result = []
+            else:
+                result = result[0]
 
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')
