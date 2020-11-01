@@ -3,7 +3,6 @@ from elasticsearch import Elasticsearch
 
 
 async def create_data(es, doc):
-    print(doc['id'])
     res = es.index(index="earthquake", id=doc['id'], body=doc)
     return res
 

@@ -1,0 +1,24 @@
+version: '3'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  web:
+    build:
+      context: api2/  #Dockerfile path
+      dockerfile: Dockerfile  #Dockerfile name
+    depends_on:
+      - elasticsearch
+    command: python api2/api2/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/django
+    ports:
+      - "8000:8000"
+

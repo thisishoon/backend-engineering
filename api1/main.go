@@ -50,16 +50,16 @@ func convertJSON(data [][]string) (interface{}, error) {
 func dataDownloader() {
 	url := "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_hour.csv"
 	data, _ := readCSVFromUrl(url)
+	fmt.Println(len(data))
 
 	beforeJSON, _ := convertJSON(data)
 	JSON, _ := json.Marshal(beforeJSON)
 	buff := bytes.NewBuffer(JSON)
 
-	resp, err := http.Post("http://localhost:8000/", "application/json", buff)
+	resp, err := http.Post("http://0.0.0.0:8000", "application/json", buff)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(resp.Body)
 
 	defer resp.Body.Close()
 
@@ -79,7 +79,7 @@ func doPeriodically() {
 func runPeriodically() {
 	for {
 		doPeriodically()
-		time.Sleep(time.Second * 30)
+		time.Sleep(time.Second * 60)
 	}
 }
 

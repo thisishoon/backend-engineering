@@ -10,11 +10,11 @@ from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFou
 from .corruncy import post_concurrency, put_concurrency, delete_concurrency
 
 class ManagerView(APIView):
-    es = Elasticsearch('localhost:9200')
+    # es = Elasticsearch('0.0.0.0:9200')
+    es = Elasticsearch(host="host.docker.internal")
     index = "earthquake"
 
     def get(self, request, pk=None):
-
         start = request.query_params.get('start')
         end = request.query_params.get('end')
 
@@ -53,6 +53,8 @@ class ManagerView(APIView):
         return HttpResponse(json.dumps(result),
                             content_type='application/json; charset=utf8')
 
+        # return HttpResponse(status=200)
+
     def post(self, request):
         data = json.loads(request.body)
         if type(data) is not list:
@@ -67,6 +69,7 @@ class ManagerView(APIView):
         except ElasticsearchException as e:
             print(e)
             return HttpResponse(status=400)
+
 
         return HttpResponse("POST OK")
 
