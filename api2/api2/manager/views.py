@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse
 from elasticsearch import Elasticsearch, ElasticsearchException, helpers, NotFoundError
-
+from .corruncy import post_concurrency, put_concurrency, delete_concurrency
 
 class ManagerView(APIView):
     es = Elasticsearch('localhost:9200')
@@ -55,42 +55,33 @@ class ManagerView(APIView):
 
     def post(self, request):
         data = json.loads(request.body)
-        result = []
         if type(data) is not list:
             try:
                 data = json.loads(data)
             except:
                 pass
-
+        if type(data) is dict:
+            data = [data]
         try:
-            if type(data) is dict:
-                data = [data]
-            else:
-                for doc in data:
-                    res = self.es.index(index='earthquake', body=doc, id=doc['id'])
-                    result.append(res['result'])
-
+            asyncio.run(put_concurrency(self.es, data))
         except ElasticsearchException as e:
             print(e)
             return HttpResponse(status=400)
 
-        print(result)
-
         return HttpResponse("POST OK")
 
     def put(self, request, pk=None):
+
         data = json.loads(request.body)
         if type(data) is dict:
             data = [data]
 
         for doc in data:
             if pk is not None:
-                updated_id = pk
+                self.es.update(index=self.index, id=pk,
+                               body={"doc": doc})
             else:
-                updated_id = doc['id']
-
-            self.es.update(index=self.index, id=updated_id,
-                           body={"doc": doc})
+                asyncio.run(put_concurrency(self.es, data))
 
         return HttpResponse("UPDATE OK")
 
@@ -100,9 +91,9 @@ class ManagerView(APIView):
             return HttpResponse("DELETE OK")
 
         data = json.loads(request.body)["id"]
+
         try:
-            for deleted_id in data:
-                self.es.delete(index=self.index, id=deleted_id)
+            asyncio.run(delete_concurrency(self.es, data))
         except NotFoundError:
             pass
 
